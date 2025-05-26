@@ -203,11 +203,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginRight: 8,
     backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   stationText: { 
     color: '#000', 
     fontSize: 14, 
-    fontWeight: 'bold' 
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
 
   controls: { 
