@@ -1,96 +1,92 @@
-import React, { useRef, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
-    TouchableOpacity,
     StyleSheet,
+    TouchableOpacity,
     ScrollView,
-    Alert,
+    SafeAreaView,
+    Dimensions,
     Animated,
     PanResponder,
-    Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
-export default function HomeScreen() {
+export default function StationScreen() {
+    const route = useRoute();
     const navigation = useNavigation();
+    const { stationName } = route.params;
+
+    // 역 목록
     const stations = ['아산캠퍼스', '아산역', '쌍용', '충무병원', '천안역', '천안터미널', '천안캠퍼스'];
     const scrollViewRef = useRef(null);
-    const pan = useRef(new Animated.Value(0)).current;
-    const panValue = useRef(0);
-
     const [scrollAreaWidth, setScrollAreaWidth] = useState(1);
     const [contentWidth, setContentWidth] = useState(1);
+    const handleScrollStations = event => {
+        // optional: handle scroll if syncing thumb
+    };
 
-    const maxScrollBarMove = Math.max(scrollAreaWidth - 100, 1);
-    const totalScrollWidth = Math.max(contentWidth - scrollAreaWidth, 1);
+    // 샘플 더미 데이터
+    const dummyData = [
+        { time: '08:00', shuttle: true, buses: [] },
+        { time: '08:10', shuttle: true, buses: [] },
+        { time: '08:40', shuttle: false, buses: ['순환5번'] },
+        { time: '08:45', shuttle: true, buses: ['1000번'] },
+        { time: '09:00', shuttle: true, buses: [] },
+        { time: '09:45', shuttle: false, buses: ['500번'] },
+        { time: '10:00', shuttle: true, buses: [] },
+    ];
 
-    pan.addListener(({ value }) => {
-        panValue.current = value;
-    });
+    const [selectedDay, setSelectedDay] = useState('weekday');
+    const [checkboxes, setCheckboxes] = useState({ shuttle: true, bus: true });
+    const [timeTableData, setTimeTableData] = useState([]);
 
+    // 가로 스크롤 타임테이블
+    const scrollRef = useRef(null);
+    const pan = useRef(new Animated.Value(0)).current;
+    const panValue = useRef(0);
+    const [ttAreaWidth, setTtAreaWidth] = useState(1);
+    const [ttContentWidth, setTtContentWidth] = useState(1);
+    const maxThumb = Math.max(ttAreaWidth - 80, 1);
+    const totalScroll = Math.max(ttContentWidth - ttAreaWidth, 1);
+
+    pan.addListener(({ value }) => (panValue.current = value));
     const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
-            onPanResponderMove: (_, gesture) => {
-                let newX = gesture.dx + panValue.current;
-                newX = Math.max(0, Math.min(newX, maxScrollBarMove));
-                pan.setValue(newX);
-
-                const scrollRatio = newX / maxScrollBarMove;
-                const newScrollX = scrollRatio * totalScrollWidth;
-                scrollViewRef.current?.scrollTo({ x: newScrollX, animated: false });
+            onPanResponderMove: (_, g) => {
+                let x = g.dx + panValue.current;
+                x = Math.max(0, Math.min(x, maxThumb));
+                pan.setValue(x);
+                const ratio = x / maxThumb;
+                scrollRef.current?.scrollTo({ x: ratio * totalScroll, animated: false });
             },
         })
     ).current;
 
-    const handleScroll = (event) => {
-        const x = event.nativeEvent.contentOffset.x;
-        const ratio = Math.max(0, Math.min(1, x / totalScrollWidth));
-        const barX = ratio * maxScrollBarMove;
-        pan.setValue(barX);
+    useEffect(() => {
+        setTimeTableData(dummyData);
+    }, [selectedDay]);
+
+    const toggleCheckbox = key => setCheckboxes(p => ({ ...p, [key]: !p[key] }));
+
+    const onTableScroll = e => {
+        const x = e.nativeEvent.contentOffset.x;
+        const ratio = x / totalScroll;
+        pan.setValue(ratio * maxThumb);
     };
 
+    const screenHeight = Dimensions.get('window').height;
+
     return (
-        <View style={styles.container}>
-            {/* 상단 바 */}
-            <View style={styles.topBar}>
-                <TouchableOpacity style={styles.menuBtn}>
-                    <Text style={styles.menuIcon}>≡</Text>
+        <SafeAreaView style={styles.container}>
+            {/* 헤더 */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Text style={styles.backIcon}>←</Text>
                 </TouchableOpacity>
-                <Image
-                    source={require('../assets/hoseobus.png')}
-                    style={styles.logoImage}
-                    resizeMode="contain"
-                />
-                <View style={{ width: 40 }} />
-            </View>
-
-            {/* 경로 정보 */}
-            <View style={styles.routeInfo}>
-                <View style={styles.recentRoute}>
-                    <Text style={styles.recentTitle}>최근 경로</Text>
-                    <Text style={styles.routeText}>아산 → 아산역</Text>
-                </View>
-                <View style={styles.departureBox}>
-                    <Text style={styles.departText}>출발 아산</Text>
-                    <Text style={styles.departText}>도착 천안</Text>
-                </View>
-            </View>
-
-            {/* 현재 위치 및 다음 버스 */}
-            <View style={styles.busInfo}>
-                <View style={styles.busInner}>
-                    <Text style={styles.busLabel}>현재 위치</Text>
-                    <Text style={styles.busValue}>아캠</Text>
-                </View>
-                <View style={styles.busInner}>
-                    <Text style={styles.busLabel}>다음 버스</Text>
-                    <View style={styles.shuttleBox}>
-                        <Text style={styles.shuttleTime}>3분 뒤</Text>
-                        <Text style={styles.shuttleBtn}>셔틀</Text>
-                    </View>
-                </View>
+                <Text style={styles.title}>{stationName}</Text>
+                <View style={{ width: 24 }} />
             </View>
 
             {/* 역 목록 스크롤 */}
@@ -99,217 +95,206 @@ export default function HomeScreen() {
                 style={styles.scrollArea}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                onContentSizeChange={(w) => setContentWidth(w)}
-                onLayout={(e) => setScrollAreaWidth(e.nativeEvent.layout.width)}
-                onScroll={handleScroll}
+                onContentSizeChange={w => setContentWidth(w)}
+                onLayout={e => setScrollAreaWidth(e.nativeEvent.layout.width)}
+                onScroll={handleScrollStations}
                 scrollEventThrottle={16}
             >
-                {
-                    stations.map((station, index) => {
-                        return (
-                            <TouchableOpacity
-                                key={index}
-                                style={styles.stationBtn}
-                                onPress={() => navigation.navigate('Station', { stationName: station })}
-                            >
-                                <Text style={styles.stationText}>{station}</Text>
-                            </TouchableOpacity>
-                        );
-                    })
-                }
+                {stations.map((station, i) => (
+                    <TouchableOpacity
+                        key={i}
+                        style={styles.stationBtn}
+                        onPress={() => navigation.navigate('Station', { stationName: station })}
+                    >
+                        <Text style={styles.stationText}>{station}</Text>
+                    </TouchableOpacity>
+                ))}
             </ScrollView>
 
-            {/* 스크롤 바 */}
-            <View style={styles.scrollLineContainer}>
-                <View style={styles.scrollLineTrack} {...panResponder.panHandlers}>
-                    <Animated.View
-                        style={[
-                            styles.scrollLineThumb,
-                            {
-                                transform: [{ translateX: pan }],
-                            },
-                        ]}
-                    />
+            {/* 요일/토글 */}
+            <View style={styles.controls}>
+                {['weekday', 'saturday', 'holiday'].map(day => (
+                    <TouchableOpacity
+                        key={day}
+                        style={[styles.dayBtn, selectedDay === day && styles.dayBtnActive]}
+                        onPress={() => setSelectedDay(day)}
+                    >
+                        <Text style={selectedDay === day ? styles.dayTextActive : styles.dayText}>
+                            {day === 'weekday' ? '평일' : day === 'saturday' ? '토요일' : '공휴일'}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+                <View style={styles.checkboxWrap}>
+                    {['shuttle', 'bus'].map(key => (
+                        <TouchableOpacity
+                            key={key}
+                            style={styles.checkbox}
+                            onPress={() => toggleCheckbox(key)}
+                        >
+                            <View style={[styles.box, checkboxes[key] && styles.boxChecked]}>
+                                {checkboxes[key] && <Text style={styles.check}>✓</Text>}
+                            </View>
+                            <Text style={styles.boxLabel}>
+                                {key === 'shuttle' ? '셔틀' : '시내버스'}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
             </View>
 
-            {/* 하단 버튼 */}
-            <View style={styles.bottomButtons}>
-                <TouchableOpacity style={styles.actionBtn} onPress={() => Alert.alert('길찾기')}>
-                    <Text style={styles.actionText}>정거장 위치</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn} onPress={() => Alert.alert('즐겨찾기')}>
-                    <Text style={styles.actionText}>즐겨찾기</Text>
-                </TouchableOpacity>
+            {/* 타임테이블 - 가로 스크롤 + 커스텀 스크롤바 */}
+            <View style={{ flex: 1 }}>
+                <ScrollView
+                    ref={scrollRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    onContentSizeChange={w => setTtContentWidth(w)}
+                    onLayout={e => setTtAreaWidth(e.nativeEvent.layout.width)}
+                    onScroll={onTableScroll}
+                    scrollEventThrottle={16}
+                >
+                    <ScrollView style={{ height: screenHeight * 0.6 }}>
+                        {timeTableData.map(i => {
+                            const show = (i.shuttle && checkboxes.shuttle) || (i.buses.length && checkboxes.bus);
+                            if (!show) return null;
+                            return (
+                                <View key={i.time} style={styles.row}>
+                                    <Text style={styles.time}>{i.time}</Text>
+                                    {i.shuttle && checkboxes.shuttle && (
+                                        <View style={styles.shuttleBox}>
+                                            <Text>셔틀</Text>
+                                        </View>
+                                    )}
+                                    {checkboxes.bus &&
+                                        i.buses.map(b => (
+                                            <View key={b + i.time} style={styles.busBox}>
+                                                <Text>{b}</Text>
+                                            </View>
+                                        ))}
+                                </View>
+                            );
+                        })}
+                    </ScrollView>
+                </ScrollView>
+                <View style={styles.scrollBarContainer} {...panResponder.panHandlers}>
+                    <View style={styles.track} />
+                    <Animated.View style={[styles.thumb, { transform: [{ translateX: pan }] }]} />
+                </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#eeeeee',
-    },
-    topBar: {
-        height: 130,
+    container: { flex: 1, backgroundColor: '#f5f5f5' },
+    header: {
+        height: 56,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 16,
         backgroundColor: '#a72020',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
     },
-    logoImage: {
-        width: 60,
-        height: 50,
-    },
-    menuBtn: {
-        width: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    menuIcon: {
-        color: 'white',
-        fontSize: 36,
-    },
-    routeInfo: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        alignItems: 'center',
-    },
-    recentRoute: {
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 20,
-        width: '65%',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-    },
-    recentTitle: {
-        color: 'gray',
-        fontSize: 16,
-        marginBottom: 8,
-    },
-    routeText: {
-        fontSize: 22,
-        fontWeight: '600',
-    },
-    departureBox: {
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 15,
-        width: '30%',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-    },
-    departText: {
-        fontSize: 16,
-        marginVertical: 4,
-    },
-    busInfo: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        backgroundColor: 'white',
-        marginHorizontal: 20,
-        borderRadius: 15,
-        padding: 18,
-        marginBottom: 15,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-    },
-    busInner: {
-        flex: 1,
-    },
-    busLabel: {
-        fontSize: 16,
-        color: 'gray',
-        marginBottom: 6,
-    },
-    busValue: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    shuttleBox: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    shuttleTime: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    shuttleBtn: {
-        borderWidth: 1,
-        borderColor: '#666',
-        borderRadius: 6,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        fontSize: 16,
-        color: '#666',
-    },
+    backIcon: { color: '#fff', fontSize: 24 },
+    title: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+
     scrollArea: {
-        paddingLeft: 15,
-        paddingVertical: 15,
-        maxHeight: 110,
+        paddingLeft: 12,
+        paddingVertical: 8,
+        backgroundColor: '#fff',
     },
     stationBtn: {
         borderWidth: 3,
         borderColor: '#a72020',
         borderRadius: 30,
-        paddingVertical: 20,
-        paddingHorizontal: 30,
-        marginRight: 15,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        marginRight: 12,
         backgroundColor: 'white',
     },
     stationText: {
         color: '#000',
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: 'bold',
     },
-    scrollLineContainer: {
-        height: 30,
-        marginHorizontal: 30,
+
+    controls: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        backgroundColor: '#fff',
+    },
+    dayBtn: {
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderWidth: 1,
+        borderColor: '#a72020',
+        borderRadius: 6,
+        marginRight: 8,
+    },
+    dayBtnActive: { backgroundColor: '#a72020' },
+    dayText: { color: '#333' },
+    dayTextActive: { color: '#fff' },
+
+    checkboxWrap: {
+        flexDirection: 'row',
+        marginLeft: 'auto',
+    },
+    checkbox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 12,
+    },
+    box: {
+        width: 20,
+        height: 20,
+        borderWidth: 1,
+        borderColor: '#a72020',
         justifyContent: 'center',
+        alignItems: 'center',
     },
-    scrollLineTrack: {
-        height: 8,
-        backgroundColor: '#ccc',
-        borderRadius: 5,
+    boxChecked: { backgroundColor: '#a72020' },
+    check: { color: '#fff' },
+    boxLabel: {
+        marginLeft: 4,
+        fontSize: 14,
+        color: '#666',
     },
-    scrollLineThumb: {
-        width: 100,
+
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        borderBottomWidth: 0.5,
+        borderColor: '#eee',
+    },
+    time: {
+        width: 60,
+        textAlign: 'right',
+        marginRight: 12,
+    },
+    shuttleBox: {
+        borderWidth: 1,
+        borderColor: '#aaa',
+        borderRadius: 6,
+        padding: 4,
+        marginRight: 6,
+    },
+    busBox: {
+        borderWidth: 1,
+        borderColor: '#3cb371',
+        borderRadius: 6,
+        padding: 4,
+        marginRight: 6,
+    },
+
+    scrollBarContainer: { height: 8, margin: 8 },
+    track: { ...StyleSheet.absoluteFill, backgroundColor: '#ddd' },
+    thumb: {
+        width: 80,
         height: 8,
         backgroundColor: '#a72020',
-        borderRadius: 5,
         position: 'absolute',
         left: 0,
-    },
-    bottomButtons: {
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-        paddingHorizontal: 30,
-        paddingBottom: 70,
-        gap: 15,
-        flex: 1,
-    },
-    actionBtn: {
-        backgroundColor: 'white',
-        paddingVertical: 50,
-        borderRadius: 25,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-    },
-    actionText: {
-        fontSize: 24,
-        fontWeight: 'bold',
     },
 });
