@@ -136,7 +136,7 @@ export default function HomeScreen() {
             {/* 하단 버튼 */}
             <View style={styles.bottomButtons}>
                 <TouchableOpacity style={styles.actionBtn} onPress={() => Alert.alert('길찾기')}>
-                    <Text style={styles.actionText}>길찾기</Text>
+                    <Text style={styles.actionText}>정거장 위치</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionBtn} onPress={() => Alert.alert('즐겨찾기')}>
                     <Text style={styles.actionText}>즐겨찾기</Text>
