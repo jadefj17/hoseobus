@@ -10,11 +10,12 @@ import {
     PanResponder,
     Image,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {
+    const navigation = useNavigation();
     const stations = ['아산캠퍼스', '아산역', '쌍용', '충무병원', '천안역', '천안터미널', '천안캠퍼스'];
     const scrollViewRef = useRef(null);
-    const scrollX = useRef(new Animated.Value(0)).current;
     const pan = useRef(new Animated.Value(0)).current;
     const panValue = useRef(0);
 
@@ -58,7 +59,7 @@ export default function HomeScreen() {
                     <Text style={styles.menuIcon}>≡</Text>
                 </TouchableOpacity>
                 <Image
-                    source={require('../assets/hoseobus.png')} // 이미지 경로에 맞게 수정
+                    source={require('../assets/hoseobus.png')}
                     style={styles.logoImage}
                     resizeMode="contain"
                 />
@@ -103,15 +104,19 @@ export default function HomeScreen() {
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
             >
-                {stations.map((station, index) => (
-                    <TouchableOpacity
-                        key={index}
-                        style={styles.stationBtn}
-                        onPress={() => Alert.alert(`${station} 눌림`)}
-                    >
-                        <Text style={styles.stationText}>{station}</Text>
-                    </TouchableOpacity>
-                ))}
+                {
+                    stations.map((station, index) => {
+                        return (
+                            <TouchableOpacity
+                                key={index}
+                                style={styles.stationBtn}
+                                onPress={() => navigation.navigate('Station', { stationName: station })}
+                            >
+                                <Text style={styles.stationText}>{station}</Text>
+                            </TouchableOpacity>
+                        );
+                    })
+                }
             </ScrollView>
 
             {/* 스크롤 바 */}
@@ -121,11 +126,7 @@ export default function HomeScreen() {
                         style={[
                             styles.scrollLineThumb,
                             {
-                                transform: [
-                                    {
-                                        translateX: pan,
-                                    },
-                                ],
+                                transform: [{ translateX: pan }],
                             },
                         ]}
                     />
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#eeeeee',
     },
     topBar: {
-        height: 80,
+        height: 130,
         backgroundColor: '#a72020',
         flexDirection: 'row',
         alignItems: 'center',
@@ -294,13 +295,13 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'flex-end',
         paddingHorizontal: 30,
-        paddingBottom: 20,
+        paddingBottom: 70,
         gap: 15,
         flex: 1,
     },
     actionBtn: {
         backgroundColor: 'white',
-        paddingVertical: 30,
+        paddingVertical: 50,
         borderRadius: 25,
         alignItems: 'center',
         shadowColor: '#000',
