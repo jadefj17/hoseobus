@@ -191,21 +191,22 @@ const styles = StyleSheet.create({
 
   scrollArea: { 
     paddingLeft: 12, 
-    paddingVertical: 8, 
-    backgroundColor: '#fff' 
+    paddingVertical: 4, 
+    backgroundColor: '#fff',
+    maxHeight: 50
   },
   stationBtn: {
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: '#a72020',
-    borderRadius: 30,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginRight: 12,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    marginRight: 8,
     backgroundColor: 'white',
   },
   stationText: { 
     color: '#000', 
-    fontSize: 16, 
+    fontSize: 14, 
     fontWeight: 'bold' 
   },
 
