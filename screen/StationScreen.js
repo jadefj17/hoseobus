@@ -16,18 +16,8 @@ export default function StationScreen() {
   const route = useRoute();
   const navigation = useNavigation();
 
-  // route.params가 없거나 stationName이 undefined일 경우 대비
-  const stationName = route.params?.stationName ?? '';
-  if (!stationName) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.errorText}>역 정보가 제공되지 않았습니다.</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>← 뒤로가기</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
+  // Safe parameter extraction with fallback
+  const stationName = route.params?.stationName || '정류장';
 
   // 역 목록
   const stations = ['아산캠퍼스', '아산역', '쌍용', '충무병원', '천안역', '천안터미널', '천안캠퍼스'];
@@ -188,10 +178,6 @@ export default function StationScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  errorText: { flex:1, textAlign:'center', marginTop:20, fontSize:16, color:'#900' },
-  backBtn: { padding:10, alignItems:'center' },
-  backBtnText: { color:'#007AFF' },
-
   header: {
     height: 56,
     flexDirection: 'row',
@@ -203,7 +189,11 @@ const styles = StyleSheet.create({
   backIcon: { color: '#fff', fontSize: 24 },
   title: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 
-  scrollArea: { paddingLeft: 12, paddingVertical: 8, backgroundColor: '#fff' },
+  scrollArea: { 
+    paddingLeft: 12, 
+    paddingVertical: 8, 
+    backgroundColor: '#fff' 
+  },
   stationBtn: {
     borderWidth: 3,
     borderColor: '#a72020',
@@ -213,9 +203,18 @@ const styles = StyleSheet.create({
     marginRight: 12,
     backgroundColor: 'white',
   },
-  stationText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
+  stationText: { 
+    color: '#000', 
+    fontSize: 16, 
+    fontWeight: 'bold' 
+  },
 
-  controls: { flexDirection: 'row', alignItems: 'center', padding: 10, backgroundColor: '#fff' },
+  controls: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10, 
+    backgroundColor: '#fff' 
+  },
   dayBtn: {
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -228,8 +227,15 @@ const styles = StyleSheet.create({
   dayText: { color: '#333' },
   dayTextActive: { color: '#fff' },
 
-  checkboxWrap: { flexDirection: 'row', marginLeft: 'auto' },
-  checkbox: { flexDirection: 'row', alignItems: 'center', marginLeft: 12 },
+  checkboxWrap: { 
+    flexDirection: 'row', 
+    marginLeft: 'auto' 
+  },
+  checkbox: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginLeft: 12 
+  },
   box: {
     width: 20,
     height: 20,
@@ -240,14 +246,46 @@ const styles = StyleSheet.create({
   },
   boxChecked: { backgroundColor: '#a72020' },
   check: { color: '#fff' },
-  boxLabel: { marginLeft: 4, fontSize: 14, color: '#666' },
+  boxLabel: { 
+    marginLeft: 4, 
+    fontSize: 14, 
+    color: '#666' 
+  },
 
-  row: { flexDirection: 'row', alignItems: 'center', padding: 10, borderBottomWidth: 0.5, borderColor: '#eee' },
-  time: { width: 60, textAlign: 'right', marginRight: 12 },
-  shuttleBox: { borderWidth: 1, borderColor: '#aaa', borderRadius: 6, padding: 4, marginRight: 6 },
-  busBox: { borderWidth: 1, borderColor: '#3cb371', borderRadius: 6, padding: 4, marginRight: 6 },
+  row: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10, 
+    borderBottomWidth: 0.5, 
+    borderColor: '#eee' 
+  },
+  time: { 
+    width: 60, 
+    textAlign: 'right', 
+    marginRight: 12 
+  },
+  shuttleBox: { 
+    borderWidth: 1, 
+    borderColor: '#aaa', 
+    borderRadius: 6, 
+    padding: 4, 
+    marginRight: 6 
+  },
+  busBox: { 
+    borderWidth: 1, 
+    borderColor: '#3cb371', 
+    borderRadius: 6, 
+    padding: 4, 
+    marginRight: 6 
+  },
 
   scrollBarContainer: { height: 8, margin: 8 },
   track: { ...StyleSheet.absoluteFill, backgroundColor: '#ddd' },
-  thumb: { width: 80, height: 8, backgroundColor: '#a72020', position: 'absolute', left: 0 },
+  thumb: { 
+    width: 80, 
+    height: 8, 
+    backgroundColor: '#a72020', 
+    position: 'absolute', 
+    left: 0 
+  },
 });
